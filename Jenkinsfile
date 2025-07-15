@@ -22,6 +22,18 @@ pipeline {
     stage('Apply') {
       steps { sh 'terraform -chdir=infra apply -auto-approve tfplan' }
     }
+    stage('Sonar Scan') {
+      steps {
+        withSonarQubeEnv('SonarDemo') {
+            sh """
+                sonar-scanner \
+                -Dsonar.projectKey=azure-jenkins-demo \
+                -Dsonar.sources=infra \
+                -Dsonar.host.url=http://sonar-1813.canadacentral.azurecontainer.io:9000
+            """
+        }
+      }
+    }
     stage('Destroy') {
       when { expression { return params.DESTROY == 'true' } }
       steps { sh 'terraform -chdir=infra destroy -auto-approve' }
